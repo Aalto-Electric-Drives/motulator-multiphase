@@ -9,7 +9,7 @@ three-phase machines, and the differential modes are current-controlled.
 from cmath import exp
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from math import pi
+from math import isclose, pi
 from typing import Any, Protocol
 
 import numpy as np
@@ -148,7 +148,8 @@ class DifferentialModeController:
         Sampling period (s). If given, the direct discrete-time design is used instead
         of the continuous-time design. The vector controller must then be a direct
         discrete-time design as well (`k_comp = 0`), since the angle advance of the
-        voltage references is common to all modes.
+        voltage references is common to all modes, and its sampling period must equal
+        this value.
 
     """
 
@@ -162,6 +163,7 @@ class DifferentialModeController:
     ) -> None:
         self.L_ls = L_ls
         self.n_sets = n_sets
+        self.T_s = T_s
         self.discrete = T_s is not None
         self.ctrls: list[ComplexPIController] | list[DiscreteComplexController]
         if T_s is None:
@@ -199,6 +201,11 @@ class DifferentialModeController:
 
     def update(self, T_s: float, dm: DifferentialModeSignals, w_c: float) -> None:
         """Update the integral states using the realized or limited DM voltages."""
+        if self.T_s is not None and not isclose(T_s, self.T_s):
+            raise ValueError(
+                "The sampling period must equal the design value of the direct "
+                "discrete-time DM controller"
+            )
         u_dm = dm.u_lim if self.discrete else dm.u
         for ctrl, u in zip(self.ctrls, u_dm, strict=True):
             ctrl.update(T_s, complex(u), w_c)

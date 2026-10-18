@@ -290,6 +290,14 @@ def test_inconsistent_configurations_are_rejected() -> None:
     discrete_dm_ctrl = control.DifferentialModeController(0.005, T_s=250e-6)
     with pytest.raises(ValueError, match="k_comp"):
         control.MultiThreePhaseControlSystem(ctrl.vector_ctrl, discrete_dm_ctrl)
+    # The sampling period of the vector controller differs from the DM design value
+    mdl, ctrl_discrete = make_case("sm_cvc", 2, False, True)
+    ctrl_mismatch = control.MultiThreePhaseControlSystem(
+        ctrl_discrete.vector_ctrl, discrete_dm_ctrl
+    )
+    ctrl_mismatch.set_torque_ref(0.0)
+    with pytest.raises(ValueError, match="sampling period"):
+        model.Simulation(mdl, ctrl_mismatch, show_progress=False).simulate(t_stop=0.01)
     mdl_3, _ = make_case("sm_cvc", 3, False)
     ctrl.set_speed_ref(0.0)
     with pytest.raises(ValueError, match="equal n_sets"):
