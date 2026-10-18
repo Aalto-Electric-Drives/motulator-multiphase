@@ -1,0 +1,13 @@
+# Byte-compiled files
+__pycache__/
+*.pyc
+
+# Distribution
+*.egg-info/
+dist/
+
+# Environments
+.venv
+
+# macOS specific
+.DS_Store
