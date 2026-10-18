@@ -4,6 +4,10 @@ This package extends [*motulator*](https://aalto-electric-drives.github.io/motul
 
 This documentation covers only the multi-three-phase extension. The machine models, control methods, and conventions common with three-phase drives are described in the [documentation of *motulator*](https://aalto-electric-drives.github.io/motulator/).
 
+```{note}
+The package is in early development, and its interfaces may change before version 1.0. It currently supports *motulator* 0.14, and the support is extended after each new release of *motulator* has been tested.
+```
+
 ```{toctree}
 ---
 titlesonly:
