@@ -273,6 +273,27 @@ def test_speed_control_and_sharing(case: str) -> None:
     assert i_sets_before == pytest.approx(np.mean(i_sets_before), rel=0.02)
     assert i_sets / np.mean(i_sets) == pytest.approx(k_share, abs=0.03)
     assert i_dm == pytest.approx(i_dm_ref, abs=0.02 * np.max(i_sets))
+    # The DM references and the CM current are in the same coordinates after the
+    # post-processing (rotor flux coordinates for induction machines)
+    c_dm = utils.dms_matrix(n_sets)[1:] @ k_share
+    i_cm = res.ctrl.fbk.i_s[ctrl_end] / n_sets
+    assert res.ctrl.dm.i_ref[ctrl_end] == pytest.approx(np.outer(i_cm, c_dm))
+
+
+def test_inconsistent_configurations_are_rejected() -> None:
+    """Inconsistent numbers of sets and controller designs raise errors."""
+    _, ctrl = make_case("sm_cvc", 2, False)
+    with pytest.raises(ValueError, match="PWMs"):
+        control.MultiThreePhaseControlSystem(
+            ctrl.vector_ctrl, ctrl.dm_ctrl, pwms=[sm_control.PWM()]
+        )
+    discrete_dm_ctrl = control.DifferentialModeController(0.005, T_s=250e-6)
+    with pytest.raises(ValueError, match="k_comp"):
+        control.MultiThreePhaseControlSystem(ctrl.vector_ctrl, discrete_dm_ctrl)
+    mdl_3, _ = make_case("sm_cvc", 3, False)
+    ctrl.set_speed_ref(0.0)
+    with pytest.raises(ValueError, match="equal n_sets"):
+        model.Simulation(mdl_3, ctrl, show_progress=False).simulate(t_stop=0.01)
 
 
 def test_models_and_control_systems_can_be_pickled() -> None:

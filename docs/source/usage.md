@@ -26,7 +26,7 @@ The simulation results are organized as in *motulator*, see the [usage of *motul
 - `res.mdl.machine.i_c_ab` and `res.mdl.converter.u_c_ab` are the currents and voltages of the sets in their own coordinates, with the shape `(n_sets, N)`.
 - `res.mdl.machine.i_dm_ab` and `res.mdl.machine.psi_dm_ab` are the DM currents and flux linkages in stationary coordinates, with the shape `(n_sets - 1, N)`.
 - `res.mdl.machine.i_s_ab`, `res.mdl.machine.psi_s_ab`, and `res.mdl.machine.u_s_ab` are the current, flux linkage, and voltage of the parallel-connected equivalent machine. Hence, the current is the sum of the set currents. These signals allow using the plotting functions of three-phase drives, such as {func}`motulator.drive.utils.plot`.
-- `res.ctrl.dm` contains the DM signals in the controller coordinates, see {class}`motulator_multiphase.control.DifferentialModeSignals`, with the shape `(N, n_sets - 1)`.
+- `res.ctrl.dm` contains the DM signals, see {class}`motulator_multiphase.control.DifferentialModeSignals`, with the shape `(N, n_sets - 1)`. They are in the same coordinates as the other signals of the vector controller, e.g., in the estimated rotor flux coordinates for induction machines.
 
 The function {func}`motulator_multiphase.utils.plot_sets` plots the current magnitudes of the sets and the DM currents with their references.
 

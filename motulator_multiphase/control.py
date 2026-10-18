@@ -214,15 +214,17 @@ class MultiThreePhaseControlSystem(
     The control is based on the decoupled multi-stator (DMS) transformation, which maps
     the three-phase sets to the common mode (CM) and the differential modes (DMs)
     [#Rub2021]_. The CM is controlled by the given vector controller of a three-phase
-    machine, configured with the parameters of the parallel-connected equivalent
-    machine, see :func:`to_parallel`. Its feedback signals are the CM voltage and the
-    current of the equivalent machine, i.e., the sum of the set currents. The DMs are
-    controlled by the DM current controller in the coordinates of the vector
-    controller. Each set has its own PWM. As in `VectorControlSystem`, the angles of
-    the voltage references are advanced by `k_comp*T_s*w_c`, where `k_comp` is given by
-    the vector controller, and the speed controller and the external references work
-    in the same manner. The DM signals are logged in the signal group `dm`, see
-    :class:`DifferentialModeSignals`, with the shape (N, n_sets - 1).
+    machine, see :func:`~motulator_multiphase.utils.to_parallel`. Its feedback signals
+    are the CM voltage and the current of the equivalent machine, i.e., the sum of the
+    set currents. The DMs are controlled by the DM current controller in the
+    coordinates of the vector controller. Each set has its own PWM. As in
+    `VectorControlSystem`, the angles of the voltage references are advanced by
+    `k_comp*T_s*w_c`, where `k_comp` is given by the vector controller, and the speed
+    controller and the external references work in the same manner. The DM signals are
+    logged in the signal group `dm`, see :class:`DifferentialModeSignals`, with the
+    shape (N, n_sets - 1). In the post-processed time series, they are in the same
+    coordinates as the signals of the vector controller (e.g., in the estimated rotor
+    flux coordinates for induction machines).
 
     Parameters
     ----------
@@ -261,14 +263,21 @@ class MultiThreePhaseControlSystem(
             theta_sets = default_set_angles(n_sets)
         if len(theta_sets) != n_sets:
             raise ValueError("The number of the set angles must equal n_sets")
+        if pwms is None:
+            pwms = [PWM() for _ in range(n_sets)]
+        if len(pwms) != n_sets:
+            raise ValueError("The number of the PWMs must equal n_sets")
+        if dm_ctrl.discrete and vector_ctrl.k_comp != 0:
+            raise ValueError(
+                "The direct discrete-time DM controller requires a direct "
+                "discrete-time vector controller (k_comp = 0)"
+            )
         self.vector_ctrl = vector_ctrl
         self.dm_ctrl = dm_ctrl
         self.speed_ctrl = speed_ctrl
         self.n_sets = n_sets
         # Maps the set vectors in their own coordinates to the CM and the DMs
         self.D = dms_matrix(n_sets) * np.exp(1j * np.asarray(theta_sets))
-        if pwms is None:
-            pwms = [PWM() for _ in range(n_sets)]
         self.pwms = list(pwms)
         self.k_comp = vector_ctrl.k_comp
         self.ext_ref = ExternalReferences()
@@ -321,6 +330,10 @@ class MultiThreePhaseControlSystem(
 
     def get_measurement(self, mdl: MultiThreePhaseDrive) -> Measurements:
         """Get measurements from the sensors."""
+        if mdl.machine.n_sets != self.n_sets:
+            raise ValueError(
+                "The drive model and control system must have equal n_sets"
+            )
         i_c_ab = abc2complex(mdl.machine.meas_currents())
         u_dc = mdl.converter.meas_dc_voltage()
         if self.vector_ctrl.sensorless:
@@ -399,10 +412,11 @@ class MultiThreePhaseControlSystem(
 
     def compute_standby_output(self, fbk: Feedbacks) -> References:
         """Compute the controller output while the gates are blocked."""
-        # The multi-three-phase converter model does not support gate blocking
-        raise NotImplementedError(
-            "Multi-three-phase control does not support gate blocking"
-        )
+        # The multi-three-phase converter model does not support gate blocking. The
+        # message is a separate statement, so that the method is not documented as an
+        # abstract method.
+        msg = "Multi-three-phase control does not support gate blocking"
+        raise NotImplementedError(msg)
 
     def save(self, t: float, **signal_groups: Any) -> None:
         """Extend the base class method by saving the DM signals."""
@@ -419,5 +433,16 @@ class MultiThreePhaseControlSystem(
     def post_process(self) -> TimeSeries:
         """Extend the post-process method."""
         ts = super().post_process()
+        i_s = np.copy(ts.fbk.i_s)
         self.vector_ctrl.post_process(ts)
+        # The vector controller may rotate its signals to other coordinates, e.g., the
+        # induction machine controllers to the estimated rotor flux coordinates. The
+        # DM signals are rotated in the same manner, the rotation being obtained from
+        # the current (no rotation at the samples of zero current).
+        rot = np.ones_like(i_s)
+        nonzero = i_s != 0
+        rot[nonzero] = ts.fbk.i_s[nonzero] / i_s[nonzero]
+        dm = vars(ts)["dm"]  # The signal group is added dynamically by save()
+        for name, value in vars(dm).items():
+            setattr(dm, name, rot[:, np.newaxis] * value)
         return ts

@@ -131,9 +131,10 @@ class MultiThreePhaseConverter(Subsystem):
 
     def update_diodes(self) -> None:
         """Not used, since the gates are never blocked."""
-        raise NotImplementedError(
-            "The multi-three-phase converter does not support gate blocking"
-        )
+        # The message is a separate statement, so that the method is not documented as
+        # an abstract method
+        msg = "The multi-three-phase converter does not support gate blocking"
+        raise NotImplementedError(msg)
 
     def set_gate_signals(self, q_abc: np.ndarray, b_abc: np.ndarray) -> None:
         """Set the switching states based on the gate and blanking signals."""
@@ -210,11 +211,12 @@ class MultiThreePhaseMachine(Subsystem):
 
     The machine has `n_sets` three-phase winding sets. The model is based on the
     decoupled multi-stator (DMS) transformation, which maps the sets to the common mode
-    (CM) and the differential modes (DMs) [#Rub2021]_, see :func:`dms_matrix`. The CM is
-    equivalent to a three-phase machine whose sets are connected in parallel. It is
-    modeled by the three-phase machine model `cm` (`SynchronousMachine` or
-    `InductionMachine`) with the parameters given by :func:`to_parallel`. Each DM is a
-    resistive-inductive circuit, consisting of the stator resistance and the leakage
+    (CM) and the differential modes (DMs) [#Rub2021]_, see
+    :func:`~motulator_multiphase.utils.dms_matrix`. The CM is equivalent to a
+    three-phase machine whose sets are connected in parallel. It is modeled by the
+    three-phase machine model `cm` (`SynchronousMachine` or `InductionMachine`) with
+    the parameters given by :func:`~motulator_multiphase.utils.to_parallel`. Each DM is
+    a resistive-inductive circuit, consisting of the stator resistance and the leakage
     inductance `L_ls` of a set, which is not coupled to the other sets. The DMs produce
     no torque, and they are modeled in stationary coordinates. The states are those of
     the CM machine, followed by the DM flux linkages.
@@ -229,7 +231,7 @@ class MultiThreePhaseMachine(Subsystem):
         Number of three-phase sets, defaults to 2.
     theta_sets : Sequence[float], optional
         Angles (rad) of the phases a of the sets, defaults to the asymmetrical
-        arrangement, see :func:`default_set_angles`.
+        arrangement, see :func:`~motulator_multiphase.utils.default_set_angles`.
 
     Notes
     -----
@@ -424,7 +426,12 @@ class MultiThreePhaseDrive(Model[MultiThreePhaseConverter]):
     pwm : bool, optional
         Enable the carrier comparison, defaults to False.
     delay : int, optional
-        Computational delay (samples), defaults to 1.
+        Computational delay in half carrier periods (sampling periods with double
+        update), defaults to 1. With single update, use 2 for a delay of one sampling
+        period, see `Model`.
+    single_update : bool, optional
+        Sample and update the duty ratios once per carrier period instead of twice,
+        defaults to False, see `Model`.
 
     """
 
@@ -435,6 +442,7 @@ class MultiThreePhaseDrive(Model[MultiThreePhaseConverter]):
         converter: MultiThreePhaseConverter,
         pwm: bool = False,
         delay: int = 1,
+        single_update: bool = False,
     ) -> None:
         if machine.n_sets != converter.n_sets:
             raise ValueError("The machine and converter must have equal n_sets")
@@ -447,4 +455,11 @@ class MultiThreePhaseDrive(Model[MultiThreePhaseConverter]):
             (converter, "i_c_ab"): (machine, "i_c_ab"),
             (mechanics, "tau_M"): (machine, "tau_M"),
         }
-        super().__init__(converter, subsystems, connections, pwm=pwm, delay=delay)
+        super().__init__(
+            converter,
+            subsystems,
+            connections,
+            pwm=pwm,
+            delay=delay,
+            single_update=single_update,
+        )

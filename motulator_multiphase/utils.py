@@ -285,7 +285,8 @@ def plot_sets(
         )
         ax2.plot(ctrl.t, i_dm_ref.real, "k--", lw=0.5, ds="steps-post")
         ax2.plot(ctrl.t, i_dm_ref.imag, "k--", lw=0.5, ds="steps-post")
-    ax2.legend(loc="best", ncols=2)
+    if mdl.machine.psi_dm_ab.shape[0] > 0:  # No DMs with one set
+        ax2.legend(loc="best", ncols=2)
     t_lims = (0, mdl.t[-1]) if t_lims is None else t_lims
     ax1.set_xlim(t_lims)
     ax1.set_ylabel("Set current (A)")
