@@ -4,7 +4,9 @@
         "ms-python.vscode-pylance",
         "charliermarsh.ruff",
         "streetsidesoftware.code-spell-checker",
+        "swyddfa.esbonio",
         "github.vscode-github-actions",
-        "tamasfe.even-better-toml"
+        "tamasfe.even-better-toml",
+        "executablebookproject.myst-highlight"
     ]
 }

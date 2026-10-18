@@ -4,11 +4,11 @@
 
 This example simulates sensorless flux-vector control (FVC) of an asymmetrical
 dual-three-phase interior permanent-magnet synchronous machine (IPMSM) drive. Each
-three-phase set corresponds to the 2.2-kW IPMSM of the public examples, and the sets
-are displaced by 30°. The common mode (CM) of the sets is controlled using the public
-flux-vector controller, parametrized with the parallel-connected equivalent machine.
-The differential mode (DM) is current-controlled, and the current sharing between the
-sets is changed during the simulation [#Rub2021]_.
+three-phase set corresponds to the 2.2-kW IPMSM of the motulator examples, and the
+sets are displaced by 30°. The common mode (CM) of the sets is controlled using the
+flux-vector controller of motulator, parametrized with the parallel-connected
+equivalent machine. The differential mode (DM) is current-controlled, and the current
+sharing between the sets is changed during the simulation [#Rub2021]_.
 
 """
 
@@ -40,7 +40,8 @@ converter = model.MultiThreePhaseConverter(u_dc=540, n_sets=n_sets)
 mdl = model.MultiThreePhaseDrive(machine, mechanics, converter)
 
 # %%
-# Configure the control system. The public flux-vector controller is used for the CM.
+# Configure the control system. The flux-vector controller of motulator is used for
+# the CM.
 
 est_par = utils.to_parallel(par, n_sets)
 cfg = sm_control.FluxVectorControllerCfg(i_s_max=1.5 * base.i, sensorless=True)

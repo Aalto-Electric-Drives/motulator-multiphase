@@ -129,7 +129,7 @@ class DifferentialModeController:
     Each DM is a resistive-inductive circuit with the leakage inductance `L_ls`. The DM
     currents are controlled in the coordinates of the vector controller using the
     flux-linkage-based complex-vector 2DOF controllers, in the same manner as in the
-    public current controllers. The DM current references correspond to the
+    current controllers of motulator. The DM current references correspond to the
     current-sharing coefficients of the sets, i.e., the reference of the set k is
     `k_share[k]*i_cm`, where `i_cm` is the common-mode current.
 

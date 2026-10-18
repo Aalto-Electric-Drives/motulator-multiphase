@@ -6,7 +6,7 @@ This example simulates current-vector control (CVC) of a nine-phase surface-moun
 permanent-magnet synchronous machine (SPMSM) with three three-phase sets. The sets are
 displaced by 15°, which differs from the standard 20° of asymmetrical nine-phase
 machines. The machine parameters are from [#Rub2021]_. The common mode (CM) of the sets
-is controlled using the public current-vector controller, parametrized with the
+is controlled using the current-vector controller of motulator, parametrized with the
 parallel-connected equivalent machine, and the differential modes (DMs) are
 current-controlled. The current sharing between the sets is changed during the
 simulation.

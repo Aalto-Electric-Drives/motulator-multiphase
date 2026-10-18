@@ -2,6 +2,8 @@
 
 **Multi-three-phase machine drives for [motulator](https://github.com/Aalto-Electric-Drives/motulator)**
 
+Documentation: https://mhinkkan.github.io/motulator-multiphase/
+
 This package extends *motulator* with models and control of machines having *n* three-phase winding sets (e.g., dual-three-phase machines), each set supplied by its own converter. The models and the control are based on the decoupled multi-stator (DMS) transformation [1], which maps the sets to the common mode (CM) and *n* − 1 differential modes (DMs). The CM is equivalent to a three-phase machine whose sets are connected in parallel, so the machine models and vector controllers of *motulator* (synchronous and induction machines, flux-vector and current-vector control, sensored and sensorless) are reused for it. The DMs are resistive-inductive circuits, controlled by complex-vector PI current controllers, and the current sharing between the sets can be changed during operation.
 
 ## Installation
@@ -29,8 +31,8 @@ machine = model.MultiThreePhaseMachine(par, L_ls=0.005, n_sets=2)
 converter = model.MultiThreePhaseConverter(u_dc=540, n_sets=2)
 mdl = model.MultiThreePhaseDrive(machine, model.MechanicalSystem(J=0.03), converter)
 
-# Control system: the public flux-vector controller for the CM, parametrized with the
-# parallel-connected equivalent machine, and a current controller for the DM
+# Control system: the flux-vector controller of motulator for the CM, parametrized
+# with the parallel-connected equivalent machine, and a current controller for the DM
 est_par = utils.to_parallel(par, 2)
 cfg = sm_control.FluxVectorControllerCfg(i_s_max=18, sensorless=True)
 vector_ctrl = sm_control.FluxVectorController(est_par, cfg)
@@ -48,7 +50,7 @@ utils.plot(res)  # CM quantities, the current being the sum of the set currents
 utils.plot_sets(res)  # Set currents and DM currents
 ```
 
-The sets are displaced by 60°/*n* by default (30° for a dual-three-phase machine); other arrangements are given with `theta_sets`. Complete examples are in [examples/](examples/).
+The sets are displaced by 60°/*n* by default (30° for a dual-three-phase machine); other arrangements are given with `theta_sets`. Complete examples are in the [example gallery](https://mhinkkan.github.io/motulator-multiphase/examples/index.html).
 
 ## Scope
 

@@ -42,9 +42,20 @@ dev = [
     "pytest",
     "ruff",
 ]
+doc = [
+    "myst-parser",
+    "numpydoc",
+    "sphinx",
+    "sphinx-autoapi",
+    "sphinx-book-theme",
+    "sphinx-copybutton",
+    "sphinx-gallery",
+    "sphinxcontrib-bibtex",
+]
 
 [project.urls]
 Homepage = "https://github.com/mhinkkan/motulator-multiphase"
+Documentation = "https://mhinkkan.github.io/motulator-multiphase/"
 
 [tool.ruff]
 line-length = 88
