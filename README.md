@@ -63,7 +63,7 @@ The sets are displaced by 60°/*n* by default (30° for a dual-three-phase machi
 
 ## Reference
 
-1. G. Rubino, O. Dordevic, E. Armando, R. Bojoi, and E. Levi, "A novel matrix transformation for decoupled control of modular multiphase PMSM drives," *IEEE Trans. Power Electron.*, 2021, https://doi.org/10.1109/TPEL.2020.3043083
+1. Rubino, Dordevic, Armando, Bojoi, Levi, "A novel matrix transformation for decoupled control of modular multiphase PMSM drives," IEEE Trans. Power Electron., 2021, https://doi.org/10.1109/TPEL.2020.3043083
 
 ## License
 
