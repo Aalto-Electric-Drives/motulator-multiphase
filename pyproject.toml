@@ -54,8 +54,8 @@ doc = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/mhinkkan/motulator-multiphase"
-Documentation = "https://mhinkkan.github.io/motulator-multiphase/"
+Homepage = "https://github.com/Aalto-Electric-Drives/motulator-multiphase"
+Documentation = "https://aalto-electric-drives.github.io/motulator-multiphase/"
 
 [tool.ruff]
 line-length = 88

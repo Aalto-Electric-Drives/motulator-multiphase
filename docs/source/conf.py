@@ -19,8 +19,8 @@ os.environ["BUILDING_DOCS"] = "1"
 # -- Project information ---------------------------------------------------------------
 
 project = "motulator-multiphase"
-copyright = "2026, Marko Hinkkanen"
-author = "Marko Hinkkanen"
+copyright = "2026, Aalto Electric Drives"
+author = "Aalto Electric Drives"
 
 # The full version, including alpha/beta/rc tags
 release = package_version("motulator-multiphase")
@@ -145,7 +145,7 @@ exclude_patterns = ["_build", "build", "Thumbs.db", ".DS_Store"]
 
 html_theme = "sphinx_book_theme"
 html_theme_options = {
-    "repository_url": "https://github.com/mhinkkan/motulator-multiphase",
+    "repository_url": "https://github.com/Aalto-Electric-Drives/motulator-multiphase",
     "use_repository_button": True,
     "navigation_with_keys": False,
 }

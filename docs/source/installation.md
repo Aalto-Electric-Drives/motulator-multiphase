@@ -7,7 +7,7 @@ The package requires Python 3.12 or newer. The installation of *motulator* and i
 The package is not yet on PyPI. It can be installed directly from GitHub with the command:
 
 ```bash
-pip install git+https://github.com/mhinkkan/motulator-multiphase
+pip install git+https://github.com/Aalto-Electric-Drives/motulator-multiphase
 ```
 
 ```{note}
@@ -23,7 +23,7 @@ For developers and advanced users, cloning the repository is recommended. The fo
 1. Clone the project using the command:
 
    ```bash
-   git clone https://github.com/mhinkkan/motulator-multiphase
+   git clone https://github.com/Aalto-Electric-Drives/motulator-multiphase
    ```
 
 1. Launch VS Code from the cloned project's root directory.
