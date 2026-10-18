@@ -28,6 +28,7 @@ from typing import Any
 import matplotlib.pyplot as plt
 import numpy as np
 from motulator.common.model import SimulationResults
+from motulator.common.utils import set_style
 from motulator.drive.model import (
     InductionMachineInvGammaPars,
     InductionMachinePars,
@@ -36,8 +37,6 @@ from motulator.drive.model import (
     SynchronousMachinePars,
 )
 from motulator.drive.utils import BaseValues, NominalValues, plot
-
-from motulator_multiphase._helpers import set_style
 
 __all__ = [
     "BaseValues",

@@ -6,7 +6,7 @@ Documentation: https://aalto-electric-drives.github.io/motulator-multiphase/
 
 This package extends *motulator* with models and control of machines having *n* three-phase winding sets (e.g., dual-three-phase machines), each set supplied by its own converter. The models and the control are based on the decoupled multi-stator (DMS) transformation [1], which maps the sets to the common mode (CM) and *n* − 1 differential modes (DMs). The CM is equivalent to a three-phase machine whose sets are connected in parallel, so the machine models and vector controllers of *motulator* (synchronous and induction machines, flux-vector and current-vector control, sensored and sensorless) are reused for it. The DMs are resistive-inductive circuits, controlled by complex-vector PI current controllers, and the current sharing between the sets can be changed during operation.
 
-**Status:** The package is in early development, and its interfaces may change before version 1.0. It currently supports *motulator* 0.14, and the support is extended after each new release of *motulator* has been tested.
+**Status:** The package is in early development, and its interfaces may change before version 1.0. It currently supports *motulator* 0.15, and the support is extended after each new release of *motulator* has been tested.
 
 ## Installation
 
