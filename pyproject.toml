@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "motulator-multiphase"
 version = "0.1.0"
 dependencies = [
-    "motulator>=0.15.0,<0.16",
+    "motulator>=0.15.0,<0.17",
     "numpy",
     "matplotlib",
 ]
@@ -32,6 +32,7 @@ classifiers = [
   "Programming Language :: Python",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
 ]
