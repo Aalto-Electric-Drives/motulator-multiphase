@@ -35,6 +35,6 @@ The function {func}`motulator_multiphase.utils.plot_sets` plots the current magn
 ```{include} ../../README.md
 ---
 start-after: '## Scope'
-end-before: '## Reference'
+end-before: '## References'
 ---
 ```

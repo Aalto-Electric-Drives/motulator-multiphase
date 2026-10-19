@@ -4,17 +4,21 @@
 
 Documentation: https://aalto-electric-drives.github.io/motulator-multiphase/
 
-This package extends *motulator* with models and control of machines having *n* three-phase winding sets (e.g., dual-three-phase machines), each set supplied by its own converter. The models and the control are based on the decoupled multi-stator (DMS) transformation [1], which maps the sets to the common mode (CM) and *n* − 1 differential modes (DMs). The CM is equivalent to a three-phase machine whose sets are connected in parallel, so the machine models and vector controllers of *motulator* (synchronous and induction machines, flux-vector and current-vector control, sensored and sensorless) are reused for it. The DMs are resistive-inductive circuits, controlled by complex-vector PI current controllers, and the current sharing between the sets can be changed during operation.
-
-**Status:** The package is in early development, and its interfaces may change before version 1.0. It currently supports *motulator* 0.15 and 0.16, and the support is extended after each new release of *motulator* has been tested.
+This package extends *motulator* with models and control of machines having *n* three-phase winding sets (e.g., dual-three-phase machines), each set supplied by its own converter. The models and the control are based on the decoupled multi-stator (DMS) transformation [[1]](#references), which maps the sets to the common mode (CM) and *n* − 1 differential modes (DMs). The CM is equivalent to a three-phase machine whose sets are connected in parallel, so the machine models and vector controllers of *motulator* (synchronous and induction machines, flux-vector and current-vector control, sensored and sensorless) are reused for it. The DMs are resistive-inductive circuits, controlled by complex-vector PI current controllers, and the current sharing between the sets can be changed during operation.
 
 ## Installation
 
-The package is not yet on PyPI. Install it from a clone (*motulator* is installed as a dependency):
+The package is not yet on PyPI. Install it from GitHub in a [virtual environment](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/) (*motulator* is installed as a dependency). On Linux and macOS:
 
 ```bash
-pip install -e .
+python3 -m venv .venv
+source .venv/bin/activate
+pip install git+https://github.com/Aalto-Electric-Drives/motulator-multiphase
 ```
+
+On Windows, the environment is created and activated with `py -m venv .venv` and `.venv\Scripts\activate`. The installation from GitHub requires Git.
+
+For development, clone the repository and install the package with `pip install -e ".[dev]"`.
 
 ## Usage
 
@@ -61,10 +65,6 @@ The sets are displaced by 60°/*n* by default (30° for a dual-three-phase machi
 - Each DM is a resistive-inductive circuit of the stator resistance and the leakage inductance of a set; it is not saturated and produces no torque.
 - Gate blocking (standby control) is not supported.
 
-## Reference
+## References
 
 1. Rubino, Dordevic, Armando, Bojoi, Levi, "A novel matrix transformation for decoupled control of modular multiphase PMSM drives," IEEE Trans. Power Electron., 2021, https://doi.org/10.1109/TPEL.2020.3043083
-
-## License
-
-MIT
