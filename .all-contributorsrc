@@ -1,0 +1,39 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 50,
+  "commit": false,
+  "commitConvention": "angular",
+  "contributors": [
+    {
+      "login": "SandroRubino",
+      "name": "Sandro Rubino",
+      "avatar_url": "https://avatars.githubusercontent.com/u/346736963?v=4",
+      "profile": "https://github.com/SandroRubino",
+      "contributions": [
+        "ideas",
+        "research"
+      ]
+    },
+    {
+      "login": "mhinkkan",
+      "name": "Marko Hinkkanen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/76600872?v=4",
+      "profile": "https://research.aalto.fi/en/persons/marko-hinkkanen",
+      "contributions": [
+        "code",
+        "ideas",
+        "example",
+        "mentoring"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "skipCi": true,
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "projectName": "motulator-multiphase",
+  "projectOwner": "Aalto-Electric-Drives",
+  "commitType": "docs"
+}
