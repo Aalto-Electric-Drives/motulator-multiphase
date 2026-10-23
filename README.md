@@ -68,3 +68,26 @@ The sets are displaced by 60°/*n* by default (30° for a dual-three-phase machi
 ## References
 
 1. Rubino, Dordevic, Armando, Bojoi, Levi, "A novel matrix transformation for decoupled control of modular multiphase PMSM drives," IEEE Trans. Power Electron., 2021, https://doi.org/10.1109/TPEL.2020.3043083
+
+## Contributors
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+
+<!-- prettier-ignore-start -->
+
+<!-- markdownlint-disable -->
+
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/SandroRubino"><img src="https://avatars.githubusercontent.com/u/346736963?v=4?s=50" width="50px;" alt="Sandro Rubino"/><br /><sub><b>Sandro Rubino</b></sub></a><br /><a href="#ideas-SandroRubino" title="Ideas, Planning, & Feedback">🤔</a> <a href="#research-SandroRubino" title="Research">🔬</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://research.aalto.fi/en/persons/marko-hinkkanen"><img src="https://avatars.githubusercontent.com/u/76600872?v=4?s=50" width="50px;" alt="Marko Hinkkanen"/><br /><sub><b>Marko Hinkkanen</b></sub></a><br /><a href="https://github.com/Aalto-Electric-Drives/motulator-multiphase/commits?author=mhinkkan" title="Code">💻</a> <a href="#ideas-mhinkkan" title="Ideas, Planning, & Feedback">🤔</a> <a href="#example-mhinkkan" title="Examples">💡</a> <a href="#mentoring-mhinkkan" title="Mentoring">🧑‍🏫</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
