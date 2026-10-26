@@ -273,11 +273,10 @@ def plot_sets(
     for k, i_k in enumerate(np.abs(mdl.machine.i_c_ab)):
         ax1.plot(mdl.t, i_k, label=rf"$|\mathbf{{i}}_{{{k + 1}}}|$")
     ax1.legend(loc="best", ncols=2)
-    colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
     for u, (i_dm, i_dm_ref) in enumerate(
         zip(ctrl.dm.i.T, ctrl.dm.i_ref.T, strict=True)
     ):
-        c, sub = colors[u % len(colors)], rf"\mathrm{{dm}}{u + 1}"
+        c, sub = f"C{u}", rf"\mathrm{{dm}}{u + 1}"
         ax2.plot(ctrl.t, i_dm.real, c=c, ds="steps-post", label=rf"$i_{{{sub},d}}$")
         ax2.plot(
             ctrl.t, i_dm.imag, "-.", c=c, ds="steps-post", label=rf"$i_{{{sub},q}}$"

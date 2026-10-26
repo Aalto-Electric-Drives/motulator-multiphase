@@ -24,7 +24,7 @@ from motulator.common.control import (
 from motulator.common.utils import abc2complex
 from motulator.drive.control.sm import SpeedController
 
-from motulator_multiphase._helpers import get_value, wrap
+from motulator_multiphase._helpers import empty_array, get_value, wrap
 from motulator_multiphase.model import MultiThreePhaseDrive
 from motulator_multiphase.utils import default_set_angles, dms_matrix
 
@@ -116,9 +116,9 @@ class DifferentialModeSignals:
 
     i: np.ndarray  # Currents
     u: np.ndarray  # Realized voltages
-    i_ref: np.ndarray = field(default_factory=lambda: np.array([]))
-    u_ref: np.ndarray = field(default_factory=lambda: np.array([]))
-    u_lim: np.ndarray = field(default_factory=lambda: np.array([]))  # Limited u_ref
+    i_ref: np.ndarray = field(default_factory=empty_array)
+    u_ref: np.ndarray = field(default_factory=empty_array)
+    u_lim: np.ndarray = field(default_factory=empty_array)  # Limited u_ref
 
 
 # %%
@@ -357,7 +357,7 @@ class MultiThreePhaseControlSystem(
             pwm.get_realized_voltage(i, meas.u_dc, average=False)
             for pwm, i in zip(self.pwms, meas.i_c_ab, strict=True)
         ]
-        u_zoh_modes = self.D @ u_c_ab
+        u_zoh_cm = complex(self.D[0] @ u_c_ab)
         u_c_ab = [
             pwm.get_realized_voltage(i, meas.u_dc)
             for pwm, i in zip(self.pwms, meas.i_c_ab, strict=True)
@@ -366,10 +366,7 @@ class MultiThreePhaseControlSystem(
         i_modes = self.D @ meas.i_c_ab
         # Parallel-connected equivalent machine
         fbk = self.vector_ctrl.get_feedback(
-            complex(u_zoh_modes[0]),
-            complex(self.n_sets * i_modes[0]),
-            meas.w_M,
-            meas.theta_M,
+            u_zoh_cm, complex(self.n_sets * i_modes[0]), meas.w_M, meas.theta_M
         )
         exp_mj_theta_c = exp(-1j * fbk.theta_c)
         fbk.u_s = exp_mj_theta_c * complex(u_modes[0])
@@ -440,16 +437,13 @@ class MultiThreePhaseControlSystem(
     def post_process(self) -> TimeSeries:
         """Extend the post-process method."""
         ts = super().post_process()
-        i_s = np.copy(ts.fbk.i_s)
+        theta_c = np.copy(ts.fbk.theta_c)
         self.vector_ctrl.post_process(ts)
         # The vector controller may rotate its signals to other coordinates, e.g., the
-        # induction machine controllers to the estimated rotor flux coordinates. The
-        # DM signals are rotated in the same manner, the rotation being obtained from
-        # the current (no rotation at the samples of zero current).
-        rot = np.ones_like(i_s)
-        nonzero = i_s != 0
-        rot[nonzero] = ts.fbk.i_s[nonzero] / i_s[nonzero]
-        dm = vars(ts)["dm"]  # The signal group is added dynamically by save()
-        for name, value in vars(dm).items():
-            setattr(dm, name, rot[:, np.newaxis] * value)
+        # induction machine controllers to the estimated rotor flux coordinates, and
+        # then updates the angle fbk.theta_c. The DM signals are rotated in the same
+        # manner.
+        T = np.exp(-1j * (ts.fbk.theta_c - theta_c))[:, np.newaxis]
+        for name, value in vars(ts.dm).items():
+            setattr(ts.dm, name, T * value)
         return ts
