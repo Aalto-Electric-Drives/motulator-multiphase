@@ -178,9 +178,7 @@ class MultiThreePhaseConverterTimeSeries(SubsystemTimeSeries):
     def __post_init__(self, t: np.ndarray, subsystem: MultiThreePhaseConverter) -> None:
         self.u_dc = np.full(np.size(t), subsystem.u_dc)
 
-    def compute_zoh_input_derived_signals(
-        self, t: np.ndarray, subsystem: MultiThreePhaseConverter
-    ) -> None:
+    def set_outputs(self, t: np.ndarray, subsystem: MultiThreePhaseConverter) -> None:
         """Compute the set voltages."""
         # The history has the shape (N, n_sets), or (0,) if it is empty
         self.q_c_ab = np.reshape(self.q_c_ab, (-1, subsystem.n_sets)).T
@@ -393,21 +391,22 @@ class MultiThreePhaseMachineTimeSeries(SubsystemTimeSeries):
             (subsystem.n_sets - 1, np.size(t)),
         )
         self.i_dm_ab = self.psi_dm_ab / subsystem.L_ls
-        self.psi_s_ab, self.tau_M = self.cm.psi_s_ab, self.cm.tau_M
-        self._set_currents(subsystem)
+        self.psi_s_ab = self.cm.psi_s_ab
 
-    def _set_currents(self, subsystem: MultiThreePhaseMachine) -> None:
-        self.i_s_ab = self.cm.i_s_ab
+    def set_outputs(self, t: np.ndarray, subsystem: MultiThreePhaseMachine) -> None:
+        """Compute the outputs, which depend on the voltages due to core losses."""
+        self.u_s_ab = subsystem.D[0] @ self.u_c_ab
+        self.cm.u_s_ab = self.u_s_ab
+        self.cm.set_outputs(t, subsystem.cm)
+        self.i_s_ab, self.tau_M = self.cm.i_s_ab, self.cm.tau_M
         self.i_c_ab = subsystem.compute_currents(self.i_s_ab, self.psi_dm_ab)
 
-    def compute_input_derived_signals(
+    def compute_derived_signals(
         self, t: np.ndarray, subsystem: MultiThreePhaseMachine
     ) -> None:
-        """Pass the inputs to the CM machine and update the currents."""
-        self.u_s_ab = subsystem.D[0] @ self.u_c_ab
-        self.cm.u_s_ab, self.cm.w_M = self.u_s_ab, self.w_M
-        self.cm.compute_input_derived_signals(t, subsystem.cm)
-        self._set_currents(subsystem)
+        """Pass the speed to the CM machine and compute its derived signals."""
+        self.cm.w_M = self.w_M
+        self.cm.compute_derived_signals(t, subsystem.cm)
 
 
 # %%
