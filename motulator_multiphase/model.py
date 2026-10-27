@@ -122,6 +122,11 @@ class MultiThreePhaseConverter(Subsystem):
         self.ac_load: Subsystem | None = None  # No AC port without gate blocking
         self.margin = np.inf  # No diode-state transitions without gate blocking
 
+    @property
+    def blocked(self) -> bool:
+        """The gates are never blocked."""
+        return False
+
     def set_enable(self, enabled: bool) -> None:
         """Set the gate enable, raising an error if the gates are to be blocked."""
         if not enabled:
@@ -134,6 +139,11 @@ class MultiThreePhaseConverter(Subsystem):
         # The message is a separate statement, so that the method is not documented as
         # an abstract method
         msg = "The multi-three-phase converter does not support gate blocking"
+        raise NotImplementedError(msg)
+
+    def compute_internal_dc_current(self, inp: Any) -> Any:
+        """Not used, since the DC-bus voltage is constant."""
+        msg = "The multi-three-phase converter does not support a DC-bus model"
         raise NotImplementedError(msg)
 
     def set_gate_signals(self, q_abc: np.ndarray, b_abc: np.ndarray) -> None:
@@ -154,6 +164,18 @@ class MultiThreePhaseConverter(Subsystem):
     def rhs(self, t: float) -> list[complex]:
         """No states."""
         return []
+
+    def init_state_history(self) -> None:
+        """Initialize the history of the switching states."""
+        super().init_state_history()
+        self._history |= {"q_c_ab": [], "s_c_ab": [], "enabled": []}
+
+    def extend_history(self, n: int, u_c_ab: Sequence[Any] | None) -> None:
+        """Extend the history, the switching states held constant over `n` points."""
+        # The sets of each point follow each other
+        self._history["q_c_ab"].extend(list(self.inp.q_c_ab) * n)
+        self._history["s_c_ab"].extend(list(self.inp.s_c_ab) * n)
+        self._history["enabled"].extend([self.inp.enabled] * n)
 
     def create_time_series(
         self, t: np.ndarray
@@ -177,10 +199,13 @@ class MultiThreePhaseConverterTimeSeries(SubsystemTimeSeries):
 
     def __post_init__(self, t: np.ndarray, subsystem: MultiThreePhaseConverter) -> None:
         self.u_dc = np.full(np.size(t), subsystem.u_dc)
+        self.q_c_ab = np.array(subsystem._history["q_c_ab"])
+        self.s_c_ab = np.array(subsystem._history["s_c_ab"])
+        self.enabled = np.array(subsystem._history["enabled"])
 
     def set_outputs(self, t: np.ndarray, subsystem: MultiThreePhaseConverter) -> None:
         """Compute the set voltages."""
-        # The history has the shape (N, n_sets), or (0,) if it is empty
+        # The history has the sets of each point in sequence
         self.q_c_ab = np.reshape(self.q_c_ab, (-1, subsystem.n_sets)).T
         self.s_c_ab = np.reshape(self.s_c_ab, (-1, subsystem.n_sets)).T
         self.u_c_ab = self.q_c_ab * self.u_dc
@@ -302,7 +327,10 @@ class MultiThreePhaseMachine(Subsystem):
     def extend_state_history(self, sol_y: list[list[float]], index: int) -> int:
         """Extend the state history, the CM states in the CM machine."""
         index = self.cm.extend_state_history(sol_y, index)
-        return super().extend_state_history(sol_y, index)
+        for name in self._dm_fields:
+            self._history[name].extend(sol_y[index])
+            index += 1
+        return index
 
     def compute_currents(self, i_s_ab: Any, psi_dm_ab: Any) -> np.ndarray:
         """
