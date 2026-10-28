@@ -218,8 +218,11 @@ def make_case(
     mdl = model.MultiThreePhaseDrive(
         model.MultiThreePhaseMachine(par, L_ls=L_ls, n_sets=n_sets),
         model.MechanicalSystem(J=J),
-        model.MultiThreePhaseConverter(u_dc=540, n_sets=n_sets),
-        pwm=pwm,
+        model.MultiThreePhaseConverter(
+            u_dc=540,
+            n_sets=n_sets,
+            modulator=model.CarrierComparison() if pwm else None,
+        ),
     )
     ctrl = control.MultiThreePhaseControlSystem(
         vector_ctrl,

@@ -3,8 +3,8 @@ Continuous-time models for multi-three-phase machine drives.
 
 Peak-valued complex space vectors are used. The voltages and currents of the
 three-phase sets are space vectors in the sets' own coordinates. The mechanical
-system models, the machine parameter classes, and the simulation class of motulator
-are re-exported for convenience.
+system models, the machine parameter classes, the modulators, and the simulation
+class of motulator are re-exported for convenience.
 
 """
 
@@ -14,9 +14,18 @@ from types import SimpleNamespace
 from typing import Any
 
 import numpy as np
-from motulator.common.model import Model, Subsystem, SubsystemTimeSeries
+from motulator.common.model import (
+    ControlledConverter,
+    Converter,
+    Model,
+    Subsystem,
+    SubsystemTimeSeries,
+    TwoLevelModulator,
+)
 from motulator.common.utils import abc2complex, complex2abc
 from motulator.drive.model import (
+    ZOH,
+    CarrierComparison,
     ExternalRotorSpeed,
     InductionMachine,
     InductionMachineInvGammaPars,
@@ -39,6 +48,8 @@ from motulator_multiphase.utils import (
 )
 
 __all__ = [
+    "ZOH",
+    "CarrierComparison",
     "ExternalRotorSpeed",
     "InductionMachineInvGammaPars",
     "InductionMachinePars",
@@ -73,16 +84,18 @@ class ConverterOutputs:
     u_dc: float
 
 
-class MultiThreePhaseConverter(Subsystem):
+class MultiThreePhaseConverter(Converter, ControlledConverter):
     """
     Lossless multi-three-phase converter with constant DC-bus voltage.
 
     The converter consists of `n_sets` three-phase converters sharing the DC bus. The
     switching states, voltages, and currents of each set are space vectors in the
-    set's own coordinates. The leg states are ordered set by set, `[a1, b1, c1, a2,
-    ...]`. As in the three-phase converter, the switches are ideal except for the dead
+    set's own coordinates. The duty ratios and the gate states of the legs are ordered
+    set by set, `[a1, b1, c1, a2, ...]`. The modulator of *motulator* converts the
+    duty ratios into the gate states, including the computational delay and the dead
+    time. As in the three-phase converter, the switches are ideal except for the dead
     time: when a leg is blanked, its state is `(1 - sign(i))/2`. Gate blocking is not
-    supported, see `set_enable`.
+    supported.
 
     Parameters
     ----------
@@ -90,8 +103,10 @@ class MultiThreePhaseConverter(Subsystem):
         DC-bus voltage (V).
     n_sets : int, optional
         Number of three-phase sets, defaults to 2.
-    t_d : float, optional
-        Dead time (s), defaults to 0.
+    modulator : TwoLevelModulator, optional
+        Modulator of the legs, e.g., `ZOH` or `CarrierComparison` of *motulator*.
+        Defaults to `ZOH()`, i.e., the switching-cycle averaged model without the dead
+        time and with the computational delay of one sampling period.
     sign : Callable[[np.ndarray], np.ndarray], optional
         Function of the phase currents (A) determining the leg states during blanking,
         defaults to `np.sign`.
@@ -102,13 +117,12 @@ class MultiThreePhaseConverter(Subsystem):
         self,
         u_dc: float,
         n_sets: int = 2,
-        t_d: float = 0.0,
+        modulator: TwoLevelModulator[Any] | None = None,
         sign: Callable[[np.ndarray], np.ndarray] = np.sign,
     ) -> None:
         self.u_dc = u_dc
         self.n_sets = n_sets
-        self.n_legs = 3 * n_sets
-        self.t_d = t_d
+        self.modulator = ZOH() if modulator is None else modulator
         self.sign = sign
         self.inp: ConverterInputs = ConverterInputs(
             q_c_ab=np.zeros(n_sets, dtype=complex),
@@ -119,35 +133,31 @@ class MultiThreePhaseConverter(Subsystem):
             u_c_ab=np.zeros(n_sets, dtype=complex), u_dc=u_dc
         )
         self.state = None
-        self.ac_load: Subsystem | None = None  # No AC port without gate blocking
-        self.margin = np.inf  # No diode-state transitions without gate blocking
 
-    @property
-    def blocked(self) -> bool:
-        """The gates are never blocked."""
-        return False
+    def modulate(self, T_s: float, command: Any) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Convert the duty ratios to the gate states and their durations.
 
-    def set_enable(self, enabled: bool) -> None:
-        """Set the gate enable, raising an error if the gates are to be blocked."""
-        if not enabled:
-            raise NotImplementedError(
-                "The multi-three-phase converter does not support gate blocking"
-            )
+        Parameters
+        ----------
+        T_s : float
+            Sampling period (s).
+        command : Any
+            Duty ratios of the legs, shape (3*n_sets,).
 
-    def update_diodes(self) -> None:
-        """Not used, since the gates are never blocked."""
-        # The message is a separate statement, so that the method is not documented as
-        # an abstract method
-        msg = "The multi-three-phase converter does not support gate blocking"
-        raise NotImplementedError(msg)
+        Returns
+        -------
+        t_steps : ndarray, shape (N,)
+            Durations of the intervals (s), summing to `T_s`.
+        gates : ndarray, shape (N, 2, 3*n_sets)
+            Gate signals of the upper switches and blanking signals in each interval.
 
-    def compute_internal_dc_current(self, inp: Any) -> Any:
-        """Not used, since the DC-bus voltage is constant."""
-        msg = "The multi-three-phase converter does not support a DC-bus model"
-        raise NotImplementedError(msg)
+        """
+        return self.modulator(T_s, command)
 
-    def set_gate_signals(self, q_abc: np.ndarray, b_abc: np.ndarray) -> None:
-        """Set the switching states based on the gate and blanking signals."""
+    def set_gates(self, gates: np.ndarray) -> None:
+        """Set the switching states based on the gate state of an interval."""
+        q_abc, b_abc = gates
         s_abc = self.sign(complex2abc(self.inp.i_c_ab).T.ravel())
         q_abc = q_abc + 0.5 * b_abc * (1 - s_abc)
         self.inp.q_c_ab = abc2complex(np.reshape(q_abc, (self.n_sets, 3)).T)
@@ -450,15 +460,6 @@ class MultiThreePhaseDrive(Model[MultiThreePhaseConverter]):
         Mechanical system model.
     converter : MultiThreePhaseConverter
         Converter model.
-    pwm : bool, optional
-        Enable the carrier comparison, defaults to False.
-    delay : int, optional
-        Computational delay in half carrier periods (sampling periods with double
-        update), defaults to 1. With single update, use 2 for a delay of one sampling
-        period, see `Model`.
-    single_update : bool, optional
-        Sample and update the duty ratios once per carrier period instead of twice,
-        defaults to False, see `Model`.
 
     """
 
@@ -467,9 +468,6 @@ class MultiThreePhaseDrive(Model[MultiThreePhaseConverter]):
         machine: MultiThreePhaseMachine,
         mechanics: MechanicalSystem | TwoMassMechanicalSystem | ExternalRotorSpeed,
         converter: MultiThreePhaseConverter,
-        pwm: bool = False,
-        delay: int = 1,
-        single_update: bool = False,
     ) -> None:
         if machine.n_sets != converter.n_sets:
             raise ValueError("The machine and converter must have equal n_sets")
@@ -482,11 +480,4 @@ class MultiThreePhaseDrive(Model[MultiThreePhaseConverter]):
             (converter, "i_c_ab"): (machine, "i_c_ab"),
             (mechanics, "tau_M"): (machine, "tau_M"),
         }
-        super().__init__(
-            converter,
-            subsystems,
-            connections,
-            pwm=pwm,
-            delay=delay,
-            single_update=single_update,
-        )
+        super().__init__(converter, subsystems, connections)
