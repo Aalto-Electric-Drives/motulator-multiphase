@@ -422,6 +422,10 @@ class MultiThreePhaseControlSystem(
         msg = "Multi-three-phase control does not support gate blocking"
         raise NotImplementedError(msg)
 
+    def get_command(self, ref: References) -> tuple[float, Sequence[float]]:
+        """Extract the sampling period and the duty ratios from the references."""
+        return ref.T_s, ref.d_abc
+
     def save(self, t: float, **signal_groups: Any) -> None:
         """Extend the base class method by saving the DM signals."""
         super().save(t, dm=self.dm, **signal_groups)

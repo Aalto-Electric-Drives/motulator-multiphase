@@ -112,8 +112,8 @@ label: set_voltage
     \mathbf{u}_k = \mathbf{q}_k\udc
 ```
 
-where $\mathbf{q}_k$ is the switching-state space vector of the set. As in the three-phase converter model of *motulator*, the switches are ideal except for the optional dead time. Gate blocking is not supported.
+where $\mathbf{q}_k$ is the switching-state space vector of the set. The converter takes a modulator of *motulator*, i.e., {class}`motulator.common.model.ZOH` (default) or {class}`motulator.common.model.CarrierComparison`, which converts the duty ratios of the legs into their gate states, including the computational delay and the optional dead time. As in the three-phase converter model of *motulator*, the switches are ideal except for the dead time. Gate blocking is not supported.
 
 ## Drive Model
 
-The {class}`motulator_multiphase.model.MultiThreePhaseDrive` class interconnects the converter, the machine, and a mechanical system model of *motulator*, i.e., {class}`motulator.drive.model.MechanicalSystem`, {class}`motulator.drive.model.TwoMassMechanicalSystem`, or {class}`motulator.drive.model.ExternalRotorSpeed`. The carrier comparison and the computational delay are configured in the same manner as in the three-phase drive models of *motulator*.
+The {class}`motulator_multiphase.model.MultiThreePhaseDrive` class interconnects the converter, the machine, and a mechanical system model of *motulator*, i.e., {class}`motulator.drive.model.MechanicalSystem`, {class}`motulator.drive.model.TwoMassMechanicalSystem`, or {class}`motulator.drive.model.ExternalRotorSpeed`.
