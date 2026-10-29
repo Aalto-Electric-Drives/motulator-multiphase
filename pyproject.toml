@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "motulator-multiphase"
 version = "0.1.0"
 dependencies = [
-    "motulator>=0.20.0,<0.21",
+    "motulator>=0.21.0,<0.22",
     "numpy",
     "matplotlib",
 ]
