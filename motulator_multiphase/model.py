@@ -187,11 +187,9 @@ class MultiThreePhaseConverter(Converter, ControlledConverter):
         self._history["s_c_ab"].extend(list(self.inp.s_c_ab) * n)
         self._history["enabled"].extend([self.inp.enabled] * n)
 
-    def create_time_series(
-        self, t: np.ndarray
-    ) -> tuple[str, "MultiThreePhaseConverterTimeSeries"]:
+    def create_time_series(self, t: np.ndarray) -> "MultiThreePhaseConverterTimeSeries":
         """Create time series."""
-        return "converter", MultiThreePhaseConverterTimeSeries(t, self)
+        return MultiThreePhaseConverterTimeSeries(t, self)
 
 
 @dataclass
@@ -278,6 +276,9 @@ class MultiThreePhaseMachine(Subsystem):
        Electron., 2021, https://doi.org/10.1109/TPEL.2020.3043083
 
     """
+
+    # The currents depend directly on the voltages through the core losses
+    feedthrough = frozenset({"u_c_ab"})
 
     def __init__(
         self,
@@ -386,11 +387,9 @@ class MultiThreePhaseMachine(Subsystem):
         """Measure the phase currents (A) of the sets, shape (3, n_sets)."""
         return complex2abc(self.out.i_c_ab)
 
-    def create_time_series(
-        self, t: np.ndarray
-    ) -> tuple[str, "MultiThreePhaseMachineTimeSeries"]:
+    def create_time_series(self, t: np.ndarray) -> "MultiThreePhaseMachineTimeSeries":
         """Create time series."""
-        return "machine", MultiThreePhaseMachineTimeSeries(t, self)
+        return MultiThreePhaseMachineTimeSeries(t, self)
 
 
 @dataclass
@@ -423,7 +422,7 @@ class MultiThreePhaseMachineTimeSeries(SubsystemTimeSeries):
     u_s_ab: np.ndarray = field(default_factory=empty_array)
 
     def __post_init__(self, t: np.ndarray, subsystem: MultiThreePhaseMachine) -> None:
-        _, self.cm = subsystem.cm.create_time_series(t)
+        self.cm = subsystem.cm.create_time_series(t)
         self.psi_dm_ab = np.reshape(
             [subsystem._history[f] for f in subsystem._dm_fields],
             (subsystem.n_sets - 1, np.size(t)),
@@ -473,11 +472,15 @@ class MultiThreePhaseDrive(Model[MultiThreePhaseConverter]):
             raise ValueError("The machine and converter must have equal n_sets")
         self.machine = machine
         self.mechanics = mechanics
-        subsystems = [converter, machine, mechanics]
+        subsystems: dict[str, Subsystem] = {
+            "converter": converter,
+            "machine": machine,
+            "mechanics": mechanics,
+        }
         connections = {
-            (machine, "u_c_ab"): (converter, "u_c_ab"),
-            (machine, "w_M"): (mechanics, "w_M"),
-            (converter, "i_c_ab"): (machine, "i_c_ab"),
-            (mechanics, "tau_M"): (machine, "tau_M"),
+            ("machine", "u_c_ab"): ("converter", "u_c_ab"),
+            ("machine", "w_M"): ("mechanics", "w_M"),
+            ("converter", "i_c_ab"): ("machine", "i_c_ab"),
+            ("mechanics", "tau_M"): ("machine", "tau_M"),
         }
         super().__init__(converter, subsystems, connections)
