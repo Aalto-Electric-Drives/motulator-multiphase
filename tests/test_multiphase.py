@@ -176,6 +176,7 @@ def test_one_set_equals_three_phase_drive() -> None:
             drive_model.SynchronousMachine(SM_PAR),
             model.ExternalRotorSpeed(),
             drive_model.VoltageSourceConverter(u_dc=540),
+            sensors=drive_model.DriveSensors(theta_M=drive_model.Sensor()),
         ),
         sm_control.VectorControlSystem(vector_ctrl()),
     )
@@ -184,6 +185,7 @@ def test_one_set_equals_three_phase_drive() -> None:
             model.MultiThreePhaseMachine(SM_PAR, L_ls=0.005, n_sets=1),
             model.ExternalRotorSpeed(),
             model.MultiThreePhaseConverter(u_dc=540, n_sets=1),
+            sensors=model.DriveSensors(theta_M=model.Sensor()),
         ),
         control.MultiThreePhaseControlSystem(
             vector_ctrl(), control.DifferentialModeController(0.005, n_sets=1)
@@ -223,6 +225,7 @@ def make_case(
             n_sets=n_sets,
             modulator=model.CarrierComparison() if pwm else None,
         ),
+        sensors=None if cfg.sensorless else model.DriveSensors(theta_M=model.Sensor()),
     )
     ctrl = control.MultiThreePhaseControlSystem(
         vector_ctrl,
@@ -301,6 +304,10 @@ def test_inconsistent_configurations_are_rejected() -> None:
     ctrl_mismatch.set_torque_ref(0.0)
     with pytest.raises(ValueError, match="sampling period"):
         model.Simulation(mdl, ctrl_mismatch, show_progress=False).simulate(t_stop=0.01)
+    # The current sensors measure an array of space vectors, which cannot be filtered
+    sensors = model.DriveSensors(i_c=model.Sensor(alpha=1e4))
+    with pytest.raises(ValueError, match="bandwidth"):
+        model.MultiThreePhaseDrive(mdl.machine, mdl.mechanics, mdl.converter, sensors)
     mdl_3, _ = make_case("sm_cvc", 3, False)
     ctrl.set_speed_ref(0.0)
     with pytest.raises(ValueError, match="equal n_sets"):
