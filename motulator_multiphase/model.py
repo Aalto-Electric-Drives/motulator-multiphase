@@ -26,12 +26,14 @@ from motulator.common.utils import abc2complex, complex2abc
 from motulator.drive.model import (
     ZOH,
     CarrierComparison,
+    DriveSensors,
     ExternalRotorSpeed,
     InductionMachine,
     InductionMachineInvGammaPars,
     InductionMachinePars,
     MechanicalSystem,
     SaturatedSynchronousMachinePars,
+    Sensor,
     Simulation,
     SpatialSaturatedSynchronousMachinePars,
     SynchronousMachine,
@@ -50,6 +52,7 @@ from motulator_multiphase.utils import (
 __all__ = [
     "ZOH",
     "CarrierComparison",
+    "DriveSensors",
     "ExternalRotorSpeed",
     "InductionMachineInvGammaPars",
     "InductionMachinePars",
@@ -58,6 +61,7 @@ __all__ = [
     "MultiThreePhaseDrive",
     "MultiThreePhaseMachine",
     "SaturatedSynchronousMachinePars",
+    "Sensor",
     "Simulation",
     "SpatialSaturatedSynchronousMachinePars",
     "SynchronousMachinePars",
@@ -166,10 +170,6 @@ class MultiThreePhaseConverter(Converter, ControlledConverter):
     def set_outputs(self, t: float) -> None:
         """Set output variables."""
         self.out.u_c_ab = self.inp.q_c_ab * self.out.u_dc
-
-    def meas_dc_voltage(self) -> float:
-        """Measure the DC-bus voltage (V)."""
-        return self.out.u_dc
 
     def rhs(self, t: float) -> list[complex]:
         """No states."""
@@ -383,10 +383,6 @@ class MultiThreePhaseMachine(Subsystem):
         d_psi_dm_ab = u_dm_ab - self.R_s * self.psi_dm_ab / self.L_ls
         return [*self.cm.rhs(t), *d_psi_dm_ab]
 
-    def meas_currents(self) -> np.ndarray:
-        """Measure the phase currents (A) of the sets, shape (3, n_sets)."""
-        return complex2abc(self.out.i_c_ab)
-
     def create_time_series(self, t: np.ndarray) -> "MultiThreePhaseMachineTimeSeries":
         """Create time series."""
         return MultiThreePhaseMachineTimeSeries(t, self)
@@ -459,6 +455,11 @@ class MultiThreePhaseDrive(Model[MultiThreePhaseConverter]):
         Mechanical system model.
     converter : MultiThreePhaseConverter
         Converter model.
+    sensors : DriveSensors, optional
+        Sensors, see `DriveSensors`, defaults to ideal phase-current and DC-bus voltage
+        sensors. Sensored control also needs the speed and position sensors. The current
+        sensors measure the phase currents of all the sets, shape (3, n_sets), and
+        cannot have a bandwidth.
 
     """
 
@@ -467,20 +468,36 @@ class MultiThreePhaseDrive(Model[MultiThreePhaseConverter]):
         machine: MultiThreePhaseMachine,
         mechanics: MechanicalSystem | TwoMassMechanicalSystem | ExternalRotorSpeed,
         converter: MultiThreePhaseConverter,
+        sensors: DriveSensors | None = None,
     ) -> None:
         if machine.n_sets != converter.n_sets:
             raise ValueError("The machine and converter must have equal n_sets")
         self.machine = machine
         self.mechanics = mechanics
+        self.sensors = DriveSensors() if sensors is None else sensors
+        if self.sensors.i_c.state is not None:
+            raise ValueError("The current sensors cannot have a bandwidth")
         subsystems: dict[str, Subsystem] = {
             "converter": converter,
             "machine": machine,
             "mechanics": mechanics,
+            "i_c_sensor": self.sensors.i_c,
+            "u_dc_sensor": self.sensors.u_dc,
         }
         connections = {
             ("machine", "u_c_ab"): ("converter", "u_c_ab"),
             ("machine", "w_M"): ("mechanics", "w_M"),
             ("converter", "i_c_ab"): ("machine", "i_c_ab"),
             ("mechanics", "tau_M"): ("machine", "tau_M"),
+            ("i_c_sensor", "x"): ("machine", "i_c_ab"),
+            ("u_dc_sensor", "x"): ("converter", "u_dc"),
         }
+        if self.sensors.w_M is not None:
+            subsystems["w_M_sensor"] = self.sensors.w_M
+            connections[("w_M_sensor", "x")] = ("mechanics", "w_M")
+        if self.sensors.theta_M is not None:
+            if self.sensors.theta_M.state is not None:
+                raise ValueError("The position sensor cannot have a bandwidth")
+            subsystems["theta_M_sensor"] = self.sensors.theta_M
+            connections[("theta_M_sensor", "x")] = ("mechanics", "theta_M")
         super().__init__(converter, subsystems, connections)

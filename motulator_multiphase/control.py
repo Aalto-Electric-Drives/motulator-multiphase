@@ -336,17 +336,16 @@ class MultiThreePhaseControlSystem(
         self.ext_ref.k_share = ref_fcn
 
     def get_measurement(self, mdl: MultiThreePhaseDrive) -> Measurements:
-        """Get measurements from the sensors."""
+        """Sample the sensors, the speed and position sensors if the drive has them."""
         if mdl.machine.n_sets != self.n_sets:
             raise ValueError(
                 "The drive model and control system must have equal n_sets"
             )
-        i_c_ab = abc2complex(mdl.machine.meas_currents())
-        u_dc = mdl.converter.meas_dc_voltage()
-        if self.vector_ctrl.sensorless:
-            return Measurements(i_c_ab, u_dc)
-        w_M = mdl.mechanics.meas_speed()
-        theta_M = wrap(mdl.mechanics.meas_position())
+        sensors = mdl.sensors
+        i_c_ab = abc2complex(sensors.i_c.sample())
+        u_dc = sensors.u_dc.sample()
+        w_M = None if sensors.w_M is None else sensors.w_M.sample()
+        theta_M = None if sensors.theta_M is None else wrap(sensors.theta_M.sample())
         return Measurements(i_c_ab, u_dc, w_M, theta_M)
 
     def get_feedback(self, meas: Measurements) -> Feedbacks:

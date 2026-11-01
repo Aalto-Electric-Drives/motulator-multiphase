@@ -38,7 +38,8 @@ machine = model.MultiThreePhaseMachine(
 )
 mechanics = model.MechanicalSystem(J=0.0133)
 converter = model.MultiThreePhaseConverter(u_dc=450, n_sets=n_sets)
-mdl = model.MultiThreePhaseDrive(machine, mechanics, converter)
+sensors = model.DriveSensors(theta_M=model.Sensor())  # Sensored control
+mdl = model.MultiThreePhaseDrive(machine, mechanics, converter, sensors=sensors)
 
 # %%
 # Configure the control system. The current amplitude of each set is limited to 3.5 A,
