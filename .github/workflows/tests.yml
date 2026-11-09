@@ -23,3 +23,25 @@ jobs:
         pip install -e .[dev]
     - name: Run tests
       run: pytest
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v7
+      with:
+        python-version: '3.12'
+    - name: Build and check the wheel and the source distribution
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+        python -m build
+        twine check --strict dist/*
+    - name: Install the wheel and run the tests outside the repository
+      run: |
+        pip install dist/*.whl pytest
+        mkdir "$RUNNER_TEMP/installed"
+        cp -r tests "$RUNNER_TEMP/installed/"
+        cd "$RUNNER_TEMP/installed"
+        python -m pytest tests --doctest-modules --pyargs motulator_multiphase

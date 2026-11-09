@@ -34,6 +34,7 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
+  "Typing :: Typed",
 ]
 
 [project.optional-dependencies]
@@ -57,6 +58,16 @@ doc = [
 [project.urls]
 Homepage = "https://github.com/Aalto-Electric-Drives/motulator-multiphase"
 Documentation = "https://aalto-electric-drives.github.io/motulator-multiphase/"
+
+# The source distribution contains only the listed paths, in addition to pyproject.toml,
+# README.md, and LICENSE, which are always included
+[tool.hatch.build.targets.sdist]
+include = [
+    "/motulator_multiphase",
+    "/tests",
+    "/examples",
+    "/docs",
+]
 
 [tool.ruff]
 line-length = 88

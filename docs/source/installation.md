@@ -4,12 +4,12 @@ The package requires Python 3.12 or newer, and it installs *motulator* as its de
 
 ## Option 1: Use pip
 
-The package is not yet on PyPI. Install it from GitHub in a [virtual environment](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/). On Linux and macOS:
+Install the package in a [virtual environment](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/). On Linux and macOS:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install git+https://github.com/Aalto-Electric-Drives/motulator-multiphase
+pip install motulator-multiphase
 ```
 
 On Windows:
@@ -17,10 +17,10 @@ On Windows:
 ```powershell
 py -m venv .venv
 .venv\Scripts\activate
-pip install git+https://github.com/Aalto-Electric-Drives/motulator-multiphase
+pip install motulator-multiphase
 ```
 
-If PowerShell does not allow running the activation script, allow it with `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`. The installation from GitHub requires Git.
+If PowerShell does not allow running the activation script, allow it with `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`.
 
 The plots need a GUI library for *matplotlib*. On some Linux systems, it must be installed separately; see the [installation of *motulator*](https://aalto-electric-drives.github.io/motulator/installation.html).
 
