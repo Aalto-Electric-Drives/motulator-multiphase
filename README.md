@@ -91,3 +91,7 @@ The sets are displaced by 60°/*n* by default (30° for a dual-three-phase machi
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
+
+## Acknowledgment
+
+This project has been sponsored by the Research Council of Finland through the *Centre of Excellence in High-Speed Electromechanical Energy Conversion Systems* and the Academy Project 355651.
