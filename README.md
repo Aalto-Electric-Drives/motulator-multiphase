@@ -8,15 +8,15 @@ This package extends *motulator* with models and control of machines having *n* 
 
 ## Installation
 
-The package is not yet on PyPI. Install it from GitHub in a [virtual environment](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/) (*motulator* is installed as a dependency). On Linux and macOS:
+Install the package in a [virtual environment](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/) (*motulator* is installed as a dependency). On Linux and macOS:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install git+https://github.com/Aalto-Electric-Drives/motulator-multiphase
+pip install motulator-multiphase
 ```
 
-On Windows, the environment is created and activated with `py -m venv .venv` and `.venv\Scripts\activate`. The installation from GitHub requires Git.
+On Windows, the environment is created and activated with `py -m venv .venv` and `.venv\Scripts\activate`.
 
 For development, clone the repository and install the package with `pip install -e ".[dev]"`.
 
