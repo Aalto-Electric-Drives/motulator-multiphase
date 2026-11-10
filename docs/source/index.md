@@ -47,3 +47,8 @@ API <autoapi/motulator_multiphase/index>
 bibliography
 motulator <https://aalto-electric-drives.github.io/motulator/>
 ```
+
+```{rubric} Acknowledgment
+```
+
+This project has been sponsored by the Research Council of Finland through the *Centre of Excellence in High-Speed Electromechanical Energy Conversion Systems* and the Academy Project 355651.
