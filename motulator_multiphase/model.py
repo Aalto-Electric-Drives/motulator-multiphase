@@ -335,7 +335,7 @@ class MultiThreePhaseMachine(Subsystem):
         self.cm.init_state_history()
         self._history = {f: [] for f in self._dm_fields}
 
-    def extend_state_history(self, sol_y: list[list[float]], index: int) -> int:
+    def extend_state_history(self, sol_y: np.ndarray, index: int) -> int:
         """Extend the state history, the CM states in the CM machine."""
         index = self.cm.extend_state_history(sol_y, index)
         for name in self._dm_fields:
