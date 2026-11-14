@@ -147,7 +147,7 @@ def test_induction_machine_matches_multi_stator_model(n_sets: int) -> None:
         outputs(t, y)
         return machine.rhs(t)
 
-    y0 = np.zeros(len(vars(machine.state)), dtype=complex)
+    y0 = np.zeros(len(machine.get_states()), dtype=complex)
     sol = solve_ivp(rhs, (0, t_eval[-1]), y0, **tol)
     i_s, tau_M = [], []
     for t, y in zip(sol.t, sol.y.T, strict=True):

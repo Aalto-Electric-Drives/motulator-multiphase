@@ -30,6 +30,7 @@ import numpy as np
 from motulator.common.model import SimulationResults
 from motulator.common.utils import set_style
 from motulator.drive.model import (
+    CageImpedance,
     InductionMachineInvGammaPars,
     InductionMachinePars,
     SaturatedSynchronousMachinePars,
@@ -180,12 +181,13 @@ def to_parallel[P: MachinePars](par: P, n_sets: int) -> P:
     Parameters of the equivalent machine with the sets connected in parallel.
 
     The given parameters describe one three-phase set, when all sets carry equal
-    currents (i.e., the common mode only). When the sets are connected in parallel,
-    the voltages and the flux linkages remain unchanged, while the currents are
-    multiplied by `n_sets`. Hence, the resistances and inductances are divided by
-    `n_sets`, and the core-loss conductance is multiplied by it. The equivalent machine
-    produces the total torque of the machine. The maps of saturated machines are scaled
-    accordingly, keeping their analytic Jacobians (e.g., of GradNet flux maps).
+    currents (i.e., the common mode only). When the sets are connected in parallel, the
+    voltages and the flux linkages remain unchanged, while the currents are multiplied
+    by `n_sets`. Hence, the resistances and inductances (also those of a cage impedance)
+    are divided by `n_sets`, and the core-loss conductance is multiplied by it. The
+    equivalent machine produces the total torque of the machine. The maps of saturated
+    machines are scaled accordingly, keeping their analytic Jacobians (e.g., of GradNet
+    flux maps).
 
     Parameters
     ----------
@@ -230,9 +232,13 @@ def to_parallel[P: MachinePars](par: P, n_sets: int) -> P:
         L_s_n: float | Callable[[float], float] = (
             partial(_scaled_inductance, L_s, n) if callable(L_s) else L_s / n
         )
-        return replace(
-            par, R_s=R_s, R_r=par.R_r / n, L_ell=par.L_ell / n, L_s=L_s_n, G_c=G_c
+        R_r = par.R_r
+        R_r_n = (
+            CageImpedance(R_r.R / n, R_r.L / n)
+            if isinstance(R_r, CageImpedance)
+            else R_r / n
         )
+        return replace(par, R_s=R_s, R_r=R_r_n, L_ell=par.L_ell / n, L_s=L_s_n, G_c=G_c)
     return replace(
         par, R_s=R_s, R_R=par.R_R / n, L_sgm=par.L_sgm / n, L_M=par.L_M / n, G_c=G_c
     )
