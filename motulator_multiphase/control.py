@@ -413,14 +413,6 @@ class MultiThreePhaseControlSystem(
         ref.u_s_lim, dm.u_lim = complex(u_lim_modes[0]), u_lim_modes[1:]
         return ref
 
-    def compute_standby_output(self, fbk: Feedbacks) -> References:
-        """Compute the controller output while the gates are blocked."""
-        # The multi-three-phase converter model does not support gate blocking. The
-        # message is a separate statement, so that the method is not documented as an
-        # abstract method.
-        msg = "Multi-three-phase control does not support gate blocking"
-        raise NotImplementedError(msg)
-
     def get_command(self, ref: References) -> tuple[float, Sequence[float]]:
         """Extract the sampling period and the duty ratios from the references."""
         return ref.T_s, ref.d_abc
