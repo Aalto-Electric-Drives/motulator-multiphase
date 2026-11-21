@@ -163,9 +163,11 @@ def test_one_set_equals_three_phase_drive() -> None:
     """With one set, the drive and its control equal the three-phase ones."""
 
     def simulate(mdl: Any, ctrl: Any) -> Any:
-        mdl.mechanics.set_external_rotor_speed(lambda t: min(t / 0.1, 1) * 100.0)
         ctrl.set_torque_ref(lambda t: (t > 0.05) * 10.0)
         return model.Simulation(mdl, ctrl, show_progress=False).simulate(0.2)
+
+    def w_M(t: float) -> float:
+        return min(t / 0.1, 1) * 100.0
 
     def vector_ctrl() -> sm_control.CurrentVectorController:
         cfg = sm_control.CurrentVectorControllerCfg(i_s_max=6.5, sensorless=False)
@@ -174,7 +176,7 @@ def test_one_set_equals_three_phase_drive() -> None:
     res = simulate(
         drive_model.Drive(
             drive_model.SynchronousMachine(SM_PAR),
-            model.ExternalRotorSpeed(),
+            model.ExternalRotorSpeed(w_M),
             drive_model.VoltageSourceConverter(u_dc=540),
             sensors=drive_model.DriveSensors(theta_M=drive_model.Sensor()),
         ),
@@ -183,7 +185,7 @@ def test_one_set_equals_three_phase_drive() -> None:
     res_1 = simulate(
         model.MultiThreePhaseDrive(
             model.MultiThreePhaseMachine(SM_PAR, L_ls=0.005, n_sets=1),
-            model.ExternalRotorSpeed(),
+            model.ExternalRotorSpeed(w_M),
             model.MultiThreePhaseConverter(u_dc=540, n_sets=1),
             sensors=model.DriveSensors(theta_M=model.Sensor()),
         ),

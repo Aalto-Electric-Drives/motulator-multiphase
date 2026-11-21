@@ -116,4 +116,4 @@ where $\mathbf{q}_k$ is the switching-state space vector of the set. The convert
 
 ## Drive Model
 
-The {class}`motulator_multiphase.model.MultiThreePhaseDrive` class interconnects the converter, the machine, and a mechanical system model of *motulator*, i.e., {class}`motulator.drive.model.MechanicalSystem`, {class}`motulator.drive.model.TwoMassMechanicalSystem`, or {class}`motulator.drive.model.ExternalRotorSpeed`.
+The {class}`motulator_multiphase.model.MultiThreePhaseDrive` class interconnects the converter, the machine, and a mechanical system model, e.g., {class}`motulator.drive.model.MechanicalSystem`, {class}`motulator.drive.model.TwoMassMechanicalSystem`, or {class}`motulator.drive.model.ExternalRotorSpeed` of *motulator*.
