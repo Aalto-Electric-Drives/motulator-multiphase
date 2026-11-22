@@ -352,15 +352,13 @@ class MultiThreePhaseControlSystem(
         """Get the feedback signals."""
         # The observers use the voltage of the ongoing sampling period, while the
         # control laws use the voltage averaged over the previous and ongoing periods
-        u_c_ab = [
-            pwm.get_realized_voltage(i, meas.u_dc, average=False)
-            for pwm, i in zip(self.pwms, meas.i_c_ab, strict=True)
-        ]
-        u_zoh_cm = complex(self.D[0] @ u_c_ab)
-        u_c_ab = [
-            pwm.get_realized_voltage(i, meas.u_dc)
-            for pwm, i in zip(self.pwms, meas.i_c_ab, strict=True)
-        ]
+        u_zoh, u_c_ab = np.array(
+            [
+                pwm.get_realized_voltages(i, meas.u_dc)
+                for pwm, i in zip(self.pwms, meas.i_c_ab, strict=True)
+            ]
+        ).T
+        u_zoh_cm = complex(self.D[0] @ u_zoh)
         u_modes = self.D @ u_c_ab
         i_modes = self.D @ meas.i_c_ab
         # Parallel-connected equivalent machine

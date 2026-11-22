@@ -443,7 +443,7 @@ class MultiThreePhaseMachineTimeSeries(SubsystemTimeSeries):
 
 
 # %%
-class MultiThreePhaseDrive(Model[MultiThreePhaseConverter]):
+class MultiThreePhaseDrive[M: Subsystem](Model[MultiThreePhaseConverter]):
     """
     Continuous-time model of a multi-three-phase machine drive.
 
@@ -451,8 +451,11 @@ class MultiThreePhaseDrive(Model[MultiThreePhaseConverter]):
     ----------
     machine : MultiThreePhaseMachine
         Machine model.
-    mechanics : MechanicalSystem | TwoMassMechanicalSystem | ExternalRotorSpeed
-        Mechanical system model.
+    mechanics : Subsystem
+        Mechanical system model, e.g., `MechanicalSystem`. It can be any subsystem whose
+        input is the electromagnetic torque `tau_M` and whose outputs are the mechanical
+        angular speed `w_M` and, with a position sensor, the mechanical angle `theta_M`
+        of the rotor.
     converter : MultiThreePhaseConverter
         Converter model.
     sensors : DriveSensors, optional
@@ -466,7 +469,7 @@ class MultiThreePhaseDrive(Model[MultiThreePhaseConverter]):
     def __init__(
         self,
         machine: MultiThreePhaseMachine,
-        mechanics: MechanicalSystem | TwoMassMechanicalSystem | ExternalRotorSpeed,
+        mechanics: M,
         converter: MultiThreePhaseConverter,
         sensors: DriveSensors | None = None,
     ) -> None:
